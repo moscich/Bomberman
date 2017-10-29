@@ -7,9 +7,7 @@ public class SimpleMove : NetworkBehaviour {
 
 	public BoardSpawn board;
 
-	// Use this for initialization
 	void Start () {
-//		transform.position = new Vector3 (6, 5, 0);
 		board = GameObject.Find("Board").GetComponent<BoardSpawn>();
 	}
 	
@@ -62,5 +60,10 @@ public class SimpleMove : NetworkBehaviour {
 		destination.x = Mathf.Max (destination.x, 0);
 		destination.y = Mathf.Max (destination.y, 0);
 		transform.position = destination;
+
+
+		if (Input.GetButton ("Fire1")) {
+			board.addBomb (currentField);
+		}
 	}
 }

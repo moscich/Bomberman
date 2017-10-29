@@ -1,16 +1,18 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public enum BoardElement {
 	solid,
 	wall,
-	empty
+	empty,
+	bomb
 };
 
 static class BoardElementExtensions {
 	public static bool canPass(this BoardElement value) {
-		return value != BoardElement.solid && value != BoardElement.wall;
+		return value != BoardElement.solid && value != BoardElement.wall && value != BoardElement.bomb;
 	}
 }
 
@@ -22,6 +24,7 @@ public class BoardSpawn : MonoBehaviour {
 	public Transform brick;
 	public Transform wall;
 	public Transform startingPoint;
+	public Transform bomb;
 
 	public Dictionary<int, BoardElement> board;
 
@@ -33,6 +36,26 @@ public class BoardSpawn : MonoBehaviour {
 		BoardElement result;
 		board.TryGetValue (BOARD_WIDTH * (int)position.y + (int)position.x, out result);
 		return result;
+	}
+
+	public void addBomb(Vector2 position) {
+		int boardIndex = (int)position.y * BOARD_WIDTH + (int)position.x;
+		if (board [boardIndex] == BoardElement.empty) {
+			NetworkServer.SendToAll (432, new SomethingMessage (boardIndex));
+			NetworkManager.singleton.client.Send(432, new SomethingMessage (boardIndex));
+//			NetworkServer.SendToClient (1, 432, new SomethingMessage (boardIndex));
+			board [boardIndex] = BoardElement.bomb;
+			Transform obj = Instantiate (bomb, new Vector3 (position.x, position.y, this.transform.position.z), Quaternion.identity);
+			obj.parent = this.transform;
+		}
+	}
+
+	public void addBomb(int index) {
+		if (board [index] == BoardElement.empty) {
+			board [index] = BoardElement.bomb;
+			Transform obj = Instantiate (bomb, new Vector3 (index % BOARD_WIDTH, index / BOARD_WIDTH, this.transform.position.z), Quaternion.identity);
+			obj.parent = this.transform;
+		}
 	}
 
 	// Use this for initialization

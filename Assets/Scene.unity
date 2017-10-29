@@ -152,7 +152,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1058043032}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: -822479833, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
+  m_Script: {fileID: 11500000, guid: 27ebc8fe14c8a41fd966d0a2f2e04483, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_NetworkPort: 7777
@@ -167,7 +167,7 @@ MonoBehaviour:
   m_PlayerPrefab: {fileID: 1356548260179820, guid: 96ba241aa769b4fc4bceeef7f5253f23,
     type: 2}
   m_AutoCreatePlayer: 1
-  m_PlayerSpawnMethod: 0
+  m_PlayerSpawnMethod: 1
   m_OfflineScene: 
   m_OnlineScene: 
   m_SpawnPrefabs: []
@@ -376,6 +376,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   brick: {fileID: 4826444686061012, guid: c2fedaa65a70645e391cb98cd5731a4f, type: 2}
   wall: {fileID: 4672872055114884, guid: 9ec06c3844f3c4dd39db32a0fe3134c8, type: 2}
+  startingPoint: {fileID: 4610294596942034, guid: 00c34dd657b9049ba9af470962f28caa,
+    type: 2}
+  bomb: {fileID: 4481202249423870, guid: 3ca600883d4294276b8468317948ff3c, type: 2}
 --- !u!4 &2064548760
 Transform:
   m_ObjectHideFlags: 0
