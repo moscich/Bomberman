@@ -9,7 +9,7 @@ public class SimpleMove : NetworkBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		transform.position = new Vector3 (6, 5, 0);
+//		transform.position = new Vector3 (6, 5, 0);
 		board = GameObject.Find("Board").GetComponent<BoardSpawn>();
 	}
 	
@@ -40,20 +40,18 @@ public class SimpleMove : NetworkBehaviour {
 		} else {
 			destinationFieldX = (int)Mathf.Floor (destination.x);
 		}
-
-		BoardElement destinationYElement;
-		board.board.TryGetValue (13 * destinationFieldY + (int)currentField.x, out destinationYElement);
-		if (destinationYElement == BoardElement.solid) {
+			
+		BoardElement destinationYElement = board.elementForPosition (new Vector2 (currentField.x, destinationFieldY));
+		if (!destinationYElement.canPass()) {
 			if (destination.y > transform.position.y) {
 				destination.y = Mathf.Min (destination.y, transform.position.y);
 			} else {
 				destination.y = Mathf.Max (destination.y, transform.position.y);
 			}
 		}
-
-		BoardElement destinationXElement;
-		board.board.TryGetValue (13 * (int)currentField.y + destinationFieldX, out destinationXElement);
-		if (destinationXElement == BoardElement.solid) {
+			
+		BoardElement destinationXElement = board.elementForPosition (new Vector2 (destinationFieldX, currentField.y));
+		if (!destinationXElement.canPass()) {
 			if (destination.x > transform.position.x) {
 				destination.x = Mathf.Min (destination.x, transform.position.x);
 			} else {
