@@ -17,7 +17,7 @@ public class SomethingMessage: MessageBase
 public class MyNetworkManager : NetworkManager {
 
 	private bool server = false;
-
+	private NetworkConnection serverConn;
 	// Use this for initialization
 	void Start () {
 //		client.RegisterHandler (MsgType.Command, MessageReceived);
@@ -33,22 +33,40 @@ public class MyNetworkManager : NetworkManager {
 		base.OnClientConnect (conn);
 
 		Debug.Log ("Client Connected " + conn.connectionId);
-		NetworkManager.singleton.client.RegisterHandler(432, MessageReceived);
+//		NetworkManager.singleton.client.RegisterHandler(432, MessageReceived);
+
 		if (!server) {
-			conn.Send (666, new SomethingMessage ());
+			serverConn = conn;
+			Debug.Log ("register Bomb ");
+			NetworkManager.singleton.client.RegisterHandler(666, Bomb);
+//			conn.Send (666, new SomethingMessage ());
 		}
 //		NetworkServer.SendToClient (conn.connectionId, 666, new SomethingMessage (1));
 //		NetworkManager.singleton.client.Send(432, new SomethingMessage (211));
 	}
 
+	public void sendBomb(int position) {
+		if (server) {
+			Debug.Log ("Send from server ");
+			NetworkServer.SendToAll (666, new SomethingMessage (position));
+		} else {
+			Debug.Log ("Send to server ");
+			serverConn.Send (666, new SomethingMessage (position));
+		}
+	}
+
 	public override void OnServerReady (NetworkConnection conn)
 	{
+		if (!server) {
+			NetworkServer.RegisterHandler (666, BombToServer);
+			NetworkServer.RegisterHandler (432, MessageReceived);
+		}
 		server = true;
 		Debug.Log ("Serv Ready " + conn.connectionId);
-		NetworkClient client = NetworkManager.singleton.client;
-		client.RegisterHandler(666, Connected);
+//		NetworkClient client = NetworkManager.singleton.client;
+
 		base.OnServerReady (conn);
-		NetworkServer.RegisterHandler (432, MessageReceived);
+
 //		conn.Send(666, new SomethingMessage (1));
 
 	}
@@ -57,11 +75,26 @@ public class MyNetworkManager : NetworkManager {
 		SomethingMessage hej = netMsg.ReadMessage<SomethingMessage>();
 		Debug.Log ("COS POSZLO!!!" + hej.someInt);
 		BoardSpawn board = GameObject.Find("Board").GetComponent<BoardSpawn>();
-		board.addBomb (hej.someInt);
+		board.bombFromNetwork (hej.someInt);
 	}
 
-	public void Connected(NetworkMessage netMsg) {
+	public void Bomb(NetworkMessage netMsg) {
 		Debug.Log ("Connected! XDXDXD");
+		SomethingMessage hej = netMsg.ReadMessage<SomethingMessage>();
+		addBombOnBoard (hej.someInt);
+	}
+
+	public void addBombOnBoard(int position) {
+		BoardSpawn board = GameObject.Find("Board").GetComponent<BoardSpawn>();
+		board.bombFromNetwork (position);
+	}
+
+	public void BombToServer(NetworkMessage netMsg) {
+		Debug.Log ("Sending to All 1 xD");
+		SomethingMessage hej = netMsg.ReadMessage<SomethingMessage>();
+		addBombOnBoard (hej.someInt);
+		Debug.Log ("Sending to All xD");
+		NetworkServer.SendToAll (666, new SomethingMessage(hej.someInt) );
 	}
 
 	public override void OnServerAddPlayer (NetworkConnection conn, short playerControllerId)

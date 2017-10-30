@@ -41,11 +41,22 @@ public class BoardSpawn : MonoBehaviour {
 	public void addBomb(Vector2 position) {
 		int boardIndex = (int)position.y * BOARD_WIDTH + (int)position.x;
 		if (board [boardIndex] == BoardElement.empty) {
-			NetworkServer.SendToAll (432, new SomethingMessage (boardIndex));
-			NetworkManager.singleton.client.Send(432, new SomethingMessage (boardIndex));
+//			NetworkServer.SendToAll (432, new SomethingMessage (boardIndex));
+//			NetworkManager.singleton.client.Send(432, new SomethingMessage (boardIndex));
+//			NetworkManager.singleton.sen
 //			NetworkServer.SendToClient (1, 432, new SomethingMessage (boardIndex));
+			MyNetworkManager networkManager = GameObject.Find("Network").GetComponent<MyNetworkManager>();
+			networkManager.sendBomb (boardIndex);
 			board [boardIndex] = BoardElement.bomb;
 			Transform obj = Instantiate (bomb, new Vector3 (position.x, position.y, this.transform.position.z), Quaternion.identity);
+			obj.parent = this.transform;
+		}
+	}
+
+	public void bombFromNetwork(int index) {
+		if (board [index] == BoardElement.empty) {
+			board [index] = BoardElement.bomb;
+			Transform obj = Instantiate (bomb, new Vector3 (index % BOARD_WIDTH, index / BOARD_WIDTH, this.transform.position.z), Quaternion.identity);
 			obj.parent = this.transform;
 		}
 	}
@@ -63,15 +74,20 @@ public class BoardSpawn : MonoBehaviour {
 		board = new Dictionary<int, BoardElement> ();
 		for (int row = 0; row < BOARD_HEIGHT; row++) {
 			for (int column = 0; column < BOARD_WIDTH; column++) {
-				BoardElement element;
-				if (row % 2 == 1 && column % 2 == 1) {
-					element = BoardElement.solid;
-				} else {
-					element = BoardElement.wall;
-				}
-				board.Add (row * BOARD_WIDTH + column, element);
+				board.Add (row * BOARD_WIDTH + column, BoardElement.empty);
 			}
 		}
+//		for (int row = 0; row < BOARD_HEIGHT; row++) {
+//			for (int column = 0; column < BOARD_WIDTH; column++) {
+//				BoardElement element;
+//				if (row % 2 == 1 && column % 2 == 1) {
+//					element = BoardElement.solid;
+//				} else {
+//					element = BoardElement.wall;
+//				}
+//				board.Add (row * BOARD_WIDTH + column, element);
+//			}
+//		}
 			
 		board[5 * BOARD_WIDTH + 5] = BoardElement.wall;
 
@@ -80,8 +96,9 @@ public class BoardSpawn : MonoBehaviour {
 		for (int row = 0; row < BOARD_HEIGHT; row++) {
 			for (int column = 0; column < BOARD_WIDTH; column++) {
 				BoardElement element;
-				board.TryGetValue (row * BOARD_WIDTH + column, out element);
-				if (element != BoardElement.empty) {
+
+				bool elementFound = board.TryGetValue (row * BOARD_WIDTH + column, out element);
+				if (elementFound && element != BoardElement.empty) {
 					Transform field = element == BoardElement.solid ? wall : brick;
 					Transform obj = Instantiate (field, new Vector3 (column, row, this.transform.position.z), Quaternion.identity);
 					obj.parent = this.transform;
