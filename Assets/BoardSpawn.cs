@@ -25,6 +25,8 @@ public class BoardSpawn : MonoBehaviour {
 	public Transform wall;
 	public Transform startingPoint;
 	public Transform bomb;
+	public Transform fire;
+	public Transform fireGroup;
 
 	public Dictionary<int, BoardElement> board;
 
@@ -41,10 +43,6 @@ public class BoardSpawn : MonoBehaviour {
 	public void addBomb(Vector2 position) {
 		int boardIndex = (int)position.y * BOARD_WIDTH + (int)position.x;
 		if (board [boardIndex] == BoardElement.empty) {
-//			NetworkServer.SendToAll (432, new SomethingMessage (boardIndex));
-//			NetworkManager.singleton.client.Send(432, new SomethingMessage (boardIndex));
-//			NetworkManager.singleton.sen
-//			NetworkServer.SendToClient (1, 432, new SomethingMessage (boardIndex));
 			MyNetworkManager networkManager = GameObject.Find("Network").GetComponent<MyNetworkManager>();
 			networkManager.sendBomb (boardIndex);
 			board [boardIndex] = BoardElement.bomb;
@@ -67,6 +65,34 @@ public class BoardSpawn : MonoBehaviour {
 			Transform obj = Instantiate (bomb, new Vector3 (index % BOARD_WIDTH, index / BOARD_WIDTH, this.transform.position.z), Quaternion.identity);
 			obj.parent = this.transform;
 		}
+	}
+
+	public void detonateBomb(Transform bomb, int power) {
+		board[(int)bomb.transform.position.y * BOARD_WIDTH + (int)bomb.transform.position.x] = BoardElement.empty;
+		Destroy (bomb.gameObject);
+
+		List<Vector3> list = new List<Vector3> ();
+		list.Add (bomb.position);
+		list.Add(new Vector3 (1 + (int)bomb.position.x, bomb.position.y));
+		list.Add(new Vector3 (2 + (int)bomb.position.x, bomb.position.y));
+		list.Add(new Vector3 (-1 + (int)bomb.position.x, bomb.position.y));
+		list.Add(new Vector3 (-2 + (int)bomb.position.x, bomb.position.y));
+
+		list.Add(new Vector3 ((int)bomb.position.x, bomb.position.y +1));
+		list.Add(new Vector3 ((int)bomb.position.x, bomb.position.y +2));
+		list.Add(new Vector3 ((int)bomb.position.x, bomb.position.y -1));
+		list.Add(new Vector3 ((int)bomb.position.x, bomb.position.y -2));
+
+		Transform parentObj = Instantiate (fireGroup, bomb.position, Quaternion.identity);
+		parentObj.parent = this.transform;
+
+		foreach (Vector3 position in list) {
+			Transform obj = Instantiate (fire, position, Quaternion.identity);
+			obj.parent = parentObj.transform;
+		}
+		brickScript brick = GameObject.Find("brick(Clone)").GetComponent<brickScript>();
+		brick.SetOnFire ();
+
 	}
 
 	// Use this for initialization
@@ -130,4 +156,5 @@ public class BoardSpawn : MonoBehaviour {
 			board[(int)clearPoint.y * BOARD_WIDTH + (int)clearPoint.x] = BoardElement.empty;
 		}
 	}
+
 }
