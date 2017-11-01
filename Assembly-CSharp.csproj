@@ -52,6 +52,9 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\BoardSpawn.cs" />
+     <Compile Include="Assets\BombScript.cs" />
+     <Compile Include="Assets\brickScript.cs" />
+     <Compile Include="Assets\fireScript.cs" />
      <Compile Include="Assets\MyNetworkManager.cs" />
      <Compile Include="Assets\SimpleMove.cs" />
  <Reference Include="UnityEngine.UI">

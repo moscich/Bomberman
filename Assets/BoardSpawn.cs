@@ -7,7 +7,8 @@ public enum BoardElement {
 	solid,
 	wall,
 	empty,
-	bomb
+	bomb,
+	fire
 };
 
 static class BoardElementExtensions {
@@ -29,6 +30,7 @@ public class BoardSpawn : MonoBehaviour {
 	public Transform fireGroup;
 
 	public Dictionary<int, BoardElement> board;
+	public Dictionary<int, GameObject> gameObjects;
 
 	public int DoSomething() {
 		return 42;
@@ -71,49 +73,79 @@ public class BoardSpawn : MonoBehaviour {
 		board[(int)bomb.transform.position.y * BOARD_WIDTH + (int)bomb.transform.position.x] = BoardElement.empty;
 		Destroy (bomb.gameObject);
 
+		int row = (int)bomb.position.y;
+		int column = (int)bomb.position.x;
+
 		List<Vector3> list = new List<Vector3> ();
 		list.Add (bomb.position);
-		list.Add(new Vector3 (1 + (int)bomb.position.x, bomb.position.y));
-		list.Add(new Vector3 (2 + (int)bomb.position.x, bomb.position.y));
-		list.Add(new Vector3 (-1 + (int)bomb.position.x, bomb.position.y));
-		list.Add(new Vector3 (-2 + (int)bomb.position.x, bomb.position.y));
-
-		list.Add(new Vector3 ((int)bomb.position.x, bomb.position.y +1));
-		list.Add(new Vector3 ((int)bomb.position.x, bomb.position.y +2));
-		list.Add(new Vector3 ((int)bomb.position.x, bomb.position.y -1));
-		list.Add(new Vector3 ((int)bomb.position.x, bomb.position.y -2));
+//		list.Add(new Vector3 (1 + (int)bomb.position.x, bomb.position.y));
+//		list.Add(new Vector3 (2 + (int)bomb.position.x, bomb.position.y));
+//		list.Add(new Vector3 (-1 + (int)bomb.position.x, bomb.position.y));
+//		list.Add(new Vector3 (-2 + (int)bomb.position.x, bomb.position.y));
+//
+//		list.Add(new Vector3 ((int)bomb.position.x, bomb.position.y -1));
+//		list.Add(new Vector3 ((int)bomb.position.x, bomb.position.y -2));
 
 		Transform parentObj = Instantiate (fireGroup, bomb.position, Quaternion.identity);
 		parentObj.parent = this.transform;
+
+		// up 
+
+		int[] directionsX = {1,-1,0,0};
+		int[] directionsY = {0,0,1,-1};
+
+		for (int dir = 0; dir < 4; dir++) {
+			int xdir = directionsX [dir];
+			int ydir = directionsY [dir];
+			for (int i = 0; i < power; i++) {
+				BoardElement element;
+				GameObject gameObj;
+				int index = (row + (1 + i) * ydir) * BOARD_WIDTH + column + (1 + i) * xdir;
+				board.TryGetValue (index, out element);
+				if (element == BoardElement.wall) {
+					gameObjects.TryGetValue (index, out gameObj);
+					gameObj.GetComponent<brickScript> ().SetOnFire ();
+					board [index] = BoardElement.empty;
+					break;
+				} else if (element == BoardElement.solid) {
+					break;
+				}
+				list.Add (new Vector3 ((int)bomb.position.x + (1 + i) * xdir , bomb.position.y + (i + 1) * ydir));
+			}
+		}
 
 		foreach (Vector3 position in list) {
 			Transform obj = Instantiate (fire, position, Quaternion.identity);
 			obj.parent = parentObj.transform;
 		}
-		brickScript brick = GameObject.Find("brick(Clone)").GetComponent<brickScript>();
-		brick.SetOnFire ();
+
+
+		// TODO implement searching for bricks to burn
+//		brickScript brick = GameObject.Find("brick(Clone)").GetComponent<brickScript>();
+//		brick.SetOnFire ();
 
 	}
 
 	// Use this for initialization
 	void Start () {
 		board = new Dictionary<int, BoardElement> ();
-		for (int row = 0; row < BOARD_HEIGHT; row++) {
-			for (int column = 0; column < BOARD_WIDTH; column++) {
-				board.Add (row * BOARD_WIDTH + column, BoardElement.empty);
-			}
-		}
+		gameObjects = new Dictionary<int, GameObject> ();
 //		for (int row = 0; row < BOARD_HEIGHT; row++) {
 //			for (int column = 0; column < BOARD_WIDTH; column++) {
-//				BoardElement element;
-//				if (row % 2 == 1 && column % 2 == 1) {
-//					element = BoardElement.solid;
-//				} else {
-//					element = BoardElement.wall;
-//				}
-//				board.Add (row * BOARD_WIDTH + column, element);
+//				board.Add (row * BOARD_WIDTH + column, BoardElement.empty);
 //			}
 //		}
+		for (int row = 0; row < BOARD_HEIGHT; row++) {
+			for (int column = 0; column < BOARD_WIDTH; column++) {
+				BoardElement element;
+				if (row % 2 == 1 && column % 2 == 1) {
+					element = BoardElement.solid;
+				} else {
+					element = BoardElement.wall;
+				}
+				board.Add (row * BOARD_WIDTH + column, element);
+			}
+		}
 			
 		board[5 * BOARD_WIDTH + 5] = BoardElement.wall;
 
@@ -128,6 +160,7 @@ public class BoardSpawn : MonoBehaviour {
 					Transform field = element == BoardElement.solid ? wall : brick;
 					Transform obj = Instantiate (field, new Vector3 (column, row, this.transform.position.z), Quaternion.identity);
 					obj.parent = this.transform;
+					gameObjects.Add (row * BOARD_WIDTH + column, obj.gameObject);
 				}
 
 			}
