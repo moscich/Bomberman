@@ -17,7 +17,7 @@ static class BoardElementExtensions {
 	}
 }
 
-public class BoardSpawn : MonoBehaviour {
+public class BoardSpawn : NetworkBehaviour {
 
 	public static int BOARD_WIDTH = 13;
 	public static int BOARD_HEIGHT = 11;
@@ -26,8 +26,10 @@ public class BoardSpawn : MonoBehaviour {
 	public Transform wall;
 	public Transform startingPoint;
 	public Transform bomb;
+	public Transform alternateBomb;
 	public Transform fire;
 	public Transform fireGroup;
+	public Transform fireWall;
 
 	public Dictionary<int, BoardElement> board;
 	public Dictionary<int, GameObject> gameObjects;
@@ -43,14 +45,21 @@ public class BoardSpawn : MonoBehaviour {
 	}
 
 	public void addBomb(Vector2 position) {
-		int boardIndex = (int)position.y * BOARD_WIDTH + (int)position.x;
-		if (board [boardIndex] == BoardElement.empty) {
-			MyNetworkManager networkManager = GameObject.Find("Network").GetComponent<MyNetworkManager>();
-			networkManager.sendBomb (boardIndex);
-			board [boardIndex] = BoardElement.bomb;
-			Transform obj = Instantiate (bomb, new Vector3 (position.x, position.y, this.transform.position.z), Quaternion.identity);
+		int index = (int)position.y * BOARD_WIDTH + (int)position.x;
+		if (board [index] == BoardElement.empty) {
+			board [index] = BoardElement.bomb;
+			Transform obj = Instantiate (alternateBomb, new Vector3 (index % BOARD_WIDTH, index / BOARD_WIDTH, this.transform.position.z), Quaternion.identity);
+			NetworkServer.Spawn(obj.gameObject);
 			obj.parent = this.transform;
 		}
+//		int boardIndex = (int)position.y * BOARD_WIDTH + (int)position.x;
+//		if (board [boardIndex] == BoardElement.empty) {
+//			MyNetworkManager networkManager = GameObject.Find("Network").GetComponent<MyNetworkManager>();
+//			networkManager.sendBomb (boardIndex);
+//			board [boardIndex] = BoardElement.bomb;
+//			Transform obj = Instantiate (bomb, new Vector3 (position.x, position.y, this.transform.position.z), Quaternion.identity);
+//			obj.parent = this.transform;
+//		}
 	}
 
 	public void bombFromNetwork(int index) {
@@ -64,9 +73,14 @@ public class BoardSpawn : MonoBehaviour {
 	public void addBomb(int index) {
 		if (board [index] == BoardElement.empty) {
 			board [index] = BoardElement.bomb;
-			Transform obj = Instantiate (bomb, new Vector3 (index % BOARD_WIDTH, index / BOARD_WIDTH, this.transform.position.z), Quaternion.identity);
+			Transform obj = Instantiate (alternateBomb, new Vector3 (index % BOARD_WIDTH, index / BOARD_WIDTH, this.transform.position.z), Quaternion.identity);
 			obj.parent = this.transform;
 		}
+//		if (board [index] == BoardElement.empty) {
+//			board [index] = BoardElement.bomb;
+//			Transform obj = Instantiate (bomb, new Vector3 (index % BOARD_WIDTH, index / BOARD_WIDTH, this.transform.position.z), Quaternion.identity);
+//			obj.parent = this.transform;
+//		}
 	}
 
 	public void detonateBomb(Transform bomb, int power) {
@@ -100,11 +114,17 @@ public class BoardSpawn : MonoBehaviour {
 			for (int i = 0; i < power; i++) {
 				BoardElement element;
 				GameObject gameObj;
-				int index = (row + (1 + i) * ydir) * BOARD_WIDTH + column + (1 + i) * xdir;
+				int targetRow = row + (1 + i) * ydir;
+				int targetColumn = column + (1 + i) * xdir;
+				int index = targetRow * BOARD_WIDTH + targetColumn;
 				board.TryGetValue (index, out element);
 				if (element == BoardElement.wall) {
 					gameObjects.TryGetValue (index, out gameObj);
-					gameObj.GetComponent<brickScript> ().SetOnFire ();
+					Destroy (gameObj);
+					Transform obj = Instantiate (fireWall, new Vector3 (targetColumn, targetRow, this.transform.position.z), Quaternion.identity);
+					obj.parent = this.transform;
+					NetworkServer.Spawn (obj.gameObject);
+					Destroy (obj.gameObject, 1);
 					board [index] = BoardElement.empty;
 					break;
 				} else if (element == BoardElement.solid) {
@@ -117,6 +137,7 @@ public class BoardSpawn : MonoBehaviour {
 		foreach (Vector3 position in list) {
 			Transform obj = Instantiate (fire, position, Quaternion.identity);
 			obj.parent = parentObj.transform;
+			NetworkServer.Spawn(obj.gameObject);
 		}
 
 
@@ -128,13 +149,21 @@ public class BoardSpawn : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		Debug.Log ("Start");
+//		if (isLocalPlayer) {return;}
+		Debug.Log ("Setup");
+		CmdSetupBoard ();
+	}
+		
+	[Command]
+	void CmdSetupBoard () {
 		board = new Dictionary<int, BoardElement> ();
 		gameObjects = new Dictionary<int, GameObject> ();
-//		for (int row = 0; row < BOARD_HEIGHT; row++) {
-//			for (int column = 0; column < BOARD_WIDTH; column++) {
-//				board.Add (row * BOARD_WIDTH + column, BoardElement.empty);
-//			}
-//		}
+		//		for (int row = 0; row < BOARD_HEIGHT; row++) {
+		//			for (int column = 0; column < BOARD_WIDTH; column++) {
+		//				board.Add (row * BOARD_WIDTH + column, BoardElement.empty);
+		//			}
+		//		}
 		for (int row = 0; row < BOARD_HEIGHT; row++) {
 			for (int column = 0; column < BOARD_WIDTH; column++) {
 				BoardElement element;
@@ -146,7 +175,7 @@ public class BoardSpawn : MonoBehaviour {
 				board.Add (row * BOARD_WIDTH + column, element);
 			}
 		}
-			
+
 		board[5 * BOARD_WIDTH + 5] = BoardElement.wall;
 
 		setupStartingPoints ();
@@ -160,6 +189,7 @@ public class BoardSpawn : MonoBehaviour {
 					Transform field = element == BoardElement.solid ? wall : brick;
 					Transform obj = Instantiate (field, new Vector3 (column, row, this.transform.position.z), Quaternion.identity);
 					obj.parent = this.transform;
+					NetworkServer.Spawn (obj.gameObject);
 					gameObjects.Add (row * BOARD_WIDTH + column, obj.gameObject);
 				}
 
@@ -167,7 +197,7 @@ public class BoardSpawn : MonoBehaviour {
 		}
 
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
 		

@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &100100000
+Prefab:
+  m_ObjectHideFlags: 1
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications: []
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 0}
+  m_RootGameObject: {fileID: 1870842356745786}
+  m_IsPrefabParent: 1
+--- !u!1 &1870842356745786
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 4065261740434672}
+  - component: {fileID: 114894527083106108}
+  - component: {fileID: 114190176305176012}
+  m_Layer: 0
+  m_Name: Board
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4065261740434672
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1870842356745786}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114190176305176012
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1870842356745786}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 372142912, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SceneId:
+    m_Value: 0
+  m_AssetId:
+    i0: 129
+    i1: 198
+    i2: 11
+    i3: 72
+    i4: 147
+    i5: 84
+    i6: 228
+    i7: 34
+    i8: 232
+    i9: 154
+    i10: 140
+    i11: 174
+    i12: 223
+    i13: 92
+    i14: 105
+    i15: 188
+  m_ServerOnly: 0
+  m_LocalPlayerAuthority: 1
+--- !u!114 &114894527083106108
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1870842356745786}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8246c2612403f4b989ffcd4ca800b6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  brick: {fileID: 4826444686061012, guid: c2fedaa65a70645e391cb98cd5731a4f, type: 2}
+  wall: {fileID: 4672872055114884, guid: 9ec06c3844f3c4dd39db32a0fe3134c8, type: 2}
+  startingPoint: {fileID: 4610294596942034, guid: 00c34dd657b9049ba9af470962f28caa,
+    type: 2}
+  bomb: {fileID: 4481202249423870, guid: 3ca600883d4294276b8468317948ff3c, type: 2}
+  alternateBomb: {fileID: 4441208863124208, guid: faa36276dc8ab406781cd6935b668070,
+    type: 2}
+  fire: {fileID: 4609913764996214, guid: d0b5eea2f54f0497290b2f8f4c4dfdae, type: 2}
+  fireGroup: {fileID: 4508575309796042, guid: 42cd4dacebf734f4bbaaa4b1921b7111, type: 2}

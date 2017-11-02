@@ -87,6 +87,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   board: {fileID: 0}
+  bomb: {fileID: 4441208863124208, guid: faa36276dc8ab406781cd6935b668070, type: 2}
   destinationDebug: {fileID: 4430162895832722, guid: fe247df7f74c543f58859fcbcd3c3f55,
     type: 2}
 --- !u!114 &114961581950605480

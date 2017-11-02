@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class BombScript : MonoBehaviour {
+public class BombScript : NetworkBehaviour {
 
 	float elapsedTime = 0;
 
@@ -23,8 +24,14 @@ public class BombScript : MonoBehaviour {
 		elapsedTime += Time.deltaTime;
 
 		if (elapsedTime > 3) {
-			BoardSpawn board = GameObject.Find("Board").GetComponent<BoardSpawn>();
-			board.detonateBomb (transform, 2);
+			CmdDetonate ();
 		}
+	}
+
+	[Command]
+	void CmdDetonate() {
+		Debug.Log ("Detonate yo xD");
+		BoardSpawn board = GameObject.Find("Board").GetComponent<BoardSpawn>();
+		board.detonateBomb (transform, 2);
 	}
 }

@@ -6,6 +6,7 @@ using UnityEngine.Networking;
 public class SimpleMove : NetworkBehaviour {
 
 	public BoardSpawn board;
+	public Transform bomb;
 	public Transform destinationDebug;
 
 	void Start () {
@@ -68,7 +69,16 @@ public class SimpleMove : NetworkBehaviour {
 		transform.position = destination;
 
 		if (Input.GetButton ("Fire1")) {
-			board.addBomb (currentField);
+//			board.addBomb (currentField);
+			CmdSetBomb(currentField);
 		}
+	}
+
+	[Command]
+	void CmdSetBomb(Vector2 currentField) {
+//		Transform obj = Instantiate (bomb, transform.position, Quaternion.identity);
+//		NetworkServer.Spawn(obj.gameObject);
+//		obj.parent = this.transform;
+		board.addBomb (currentField);
 	}
 }
