@@ -10,7 +10,7 @@ public class SimpleMove : NetworkBehaviour {
 	public Transform destinationDebug;
 
 	void Start () {
-		board = GameObject.Find("Board").GetComponent<BoardSpawn>();
+		board = GameObject.Find("Board(Clone)").GetComponent<BoardSpawn>();
 //		destinationDebug = Instantiate (destinationDebug, new Vector3 (0, 0, this.transform.position.z), Quaternion.identity);
 	}
 	

@@ -31,7 +31,7 @@ public class BombScript : NetworkBehaviour {
 	[Command]
 	void CmdDetonate() {
 		Debug.Log ("Detonate yo xD");
-		BoardSpawn board = GameObject.Find("Board").GetComponent<BoardSpawn>();
+		BoardSpawn board = GameObject.Find("Board(Clone)").GetComponent<BoardSpawn>();
 		board.detonateBomb (transform, 2);
 	}
 }

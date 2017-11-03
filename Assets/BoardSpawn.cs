@@ -40,7 +40,10 @@ public class BoardSpawn : NetworkBehaviour {
 
 	public BoardElement elementForPosition(Vector2 position) {
 		BoardElement result;
-		board.TryGetValue (BOARD_WIDTH * (int)position.y + (int)position.x, out result);
+		bool found = board.TryGetValue (BOARD_WIDTH * (int)position.y + (int)position.x, out result);
+		if (found == false) {
+			return BoardElement.empty;
+		}
 		return result;
 	}
 
@@ -139,42 +142,51 @@ public class BoardSpawn : NetworkBehaviour {
 			obj.parent = parentObj.transform;
 			NetworkServer.Spawn(obj.gameObject);
 		}
-
-
-		// TODO implement searching for bricks to burn
-//		brickScript brick = GameObject.Find("brick(Clone)").GetComponent<brickScript>();
-//		brick.SetOnFire ();
-
+			
 	}
 
 	// Use this for initialization
 	void Start () {
+		board = new Dictionary<int, BoardElement> ();
+		if (!isServer) {
+			return;
+			}
 		Debug.Log ("Start");
 //		if (isLocalPlayer) {return;}
 		Debug.Log ("Setup");
-		CmdSetupBoard ();
-	}
-		
-	[Command]
-	void CmdSetupBoard () {
-		board = new Dictionary<int, BoardElement> ();
+
+
 		gameObjects = new Dictionary<int, GameObject> ();
 		//		for (int row = 0; row < BOARD_HEIGHT; row++) {
 		//			for (int column = 0; column < BOARD_WIDTH; column++) {
 		//				board.Add (row * BOARD_WIDTH + column, BoardElement.empty);
 		//			}
 		//		}
+
+		CmdSetupBoard ();
+	}
+		
+	[Command]
+	void CmdSetupBoard () {
+
 		for (int row = 0; row < BOARD_HEIGHT; row++) {
 			for (int column = 0; column < BOARD_WIDTH; column++) {
 				BoardElement element;
 				if (row % 2 == 1 && column % 2 == 1) {
 					element = BoardElement.solid;
 				} else {
-					element = BoardElement.wall;
+					if (Random.Range (0, 2) == 1) {
+						element = BoardElement.wall;
+					} else {
+						element = BoardElement.empty;
+					}
 				}
 				board.Add (row * BOARD_WIDTH + column, element);
 			}
 		}
+
+		Debug.Log ("Setup Board");
+
 
 		board[5 * BOARD_WIDTH + 5] = BoardElement.wall;
 
@@ -193,9 +205,23 @@ public class BoardSpawn : NetworkBehaviour {
 					gameObjects.Add (row * BOARD_WIDTH + column, obj.gameObject);
 				}
 
-			}
+			} 
 		}
 
+		RpcDamage (42);
+
+	}
+
+	[ClientRpc]
+	public void RpcDamage(int board)
+	{
+		if (isServer) {
+			Debug.Log ("Server received");
+		} else {
+			Debug.Log ("Client received");
+		}
+		Debug.Log ("Received board yo!" + board);
+//		this.board = board;
 	}
 
 	// Update is called once per frame

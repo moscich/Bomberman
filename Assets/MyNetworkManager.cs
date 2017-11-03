@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 
 public class SomethingMessage: MessageBase
 {
@@ -15,12 +16,32 @@ public class SomethingMessage: MessageBase
 }
 
 public class MyNetworkManager : NetworkManager {
-
+	
+	public Button buttonComponent;
 	private bool server = false;
 	private NetworkConnection serverConn;
+	private List<NetworkConnection> connList;
 	// Use this for initialization
 	void Start () {
+		connList = new List<NetworkConnection> ();
+		buttonComponent.onClick.AddListener (HandleClick);
 //		client.RegisterHandler (MsgType.Command, MessageReceived);
+	}
+
+	public void HandleClick()
+	{
+		GameController ctrl = GameObject.Find("GameController").GetComponent<GameController>();
+		ctrl.gogoyo ();
+		for (short i = 0; i < connList.Count; i++) {
+			NetworkConnection conn = connList [i];
+			GameObject obj = Instantiate (playerPrefab, new Vector3 (0, 0, 0), Quaternion.identity);
+			NetworkServer.SpawnWithClientAuthority (obj, conn);
+			NetworkServer.AddPlayerForConnection (conn, obj, i);
+		}
+//		foreach (NetworkConnection conn in connList) {
+//			
+//		}
+
 	}
 
 	// Update is called once per frame
@@ -31,11 +52,10 @@ public class MyNetworkManager : NetworkManager {
 	public override void OnClientConnect (NetworkConnection conn)
 	{
 		base.OnClientConnect (conn);
-
 		Debug.Log ("Client Connected " + conn.connectionId);
 //		NetworkManager.singleton.client.RegisterHandler(432, MessageReceived);
 
-		if (!server) {
+		if (!server) { 
 			serverConn = conn;
 			Debug.Log ("register Bomb ");
 			NetworkManager.singleton.client.RegisterHandler(666, Bomb);
@@ -57,18 +77,39 @@ public class MyNetworkManager : NetworkManager {
 
 	public override void OnServerReady (NetworkConnection conn)
 	{
+		base.OnServerReady (conn);
+		if (NetworkManager.singleton.client.connection == conn) {
+			Debug.Log ("They are equal!");
+		}
+
 		if (!server) {
+			
 			NetworkServer.RegisterHandler (666, BombToServer);
 			NetworkServer.RegisterHandler (432, MessageReceived);
 		}
+//		if (conn.connectionId == 1) {
+//			GameController ctrl = GameObject.Find("GameController").GetComponent<GameController>();
+//			ctrl.gogoyo ();
+//		}
 		server = true;
 		Debug.Log ("Serv Ready " + conn.connectionId);
 //		NetworkClient client = NetworkManager.singleton.client;
 
-		base.OnServerReady (conn);
+
+
 
 //		conn.Send(666, new SomethingMessage (1));
 
+	}
+
+	public override void OnServerConnect (NetworkConnection conn)
+	{
+		base.OnServerConnect (conn);
+//		if (NetworkManager.singleton.client.connection == conn) {
+//			Debug.Log ("They are equal! Connect");
+//		}
+		connList.Add(conn);
+		Debug.Log ("ON serv Conn = " + conn.connectionId);
 	}
 
 	public void MessageReceived(NetworkMessage netMsg) {
