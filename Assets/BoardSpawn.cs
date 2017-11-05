@@ -147,7 +147,6 @@ public class BoardSpawn : NetworkBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		board = new Dictionary<int, BoardElement> ();
 		if (!isServer) {
 			return;
 			}
@@ -169,6 +168,7 @@ public class BoardSpawn : NetworkBehaviour {
 	[Command]
 	void CmdSetupBoard () {
 
+		board = new Dictionary<int, BoardElement> ();
 		for (int row = 0; row < BOARD_HEIGHT; row++) {
 			for (int column = 0; column < BOARD_WIDTH; column++) {
 				BoardElement element;
@@ -207,20 +207,21 @@ public class BoardSpawn : NetworkBehaviour {
 
 			} 
 		}
-
-		RpcDamage (42);
+			
+		RpcTransferBoard (boardString ());
 
 	}
 
 	[ClientRpc]
-	public void RpcDamage(int board)
+	public void RpcTransferBoard(string boardString)
 	{
 		if (isServer) {
 			Debug.Log ("Server received");
 		} else {
+			board = setupBoardFromString (boardString);
 			Debug.Log ("Client received");
 		}
-		Debug.Log ("Received board yo!" + board);
+		Debug.Log ("Received board yo!" + boardString);
 //		this.board = board;
 	}
 
@@ -246,4 +247,30 @@ public class BoardSpawn : NetworkBehaviour {
 		}
 	}
 
+	private string boardString() {
+		string result = "";
+		for (int i = 0; i < BOARD_WIDTH * BOARD_HEIGHT; i++) {
+			BoardElement element;
+			board.TryGetValue (i, out element);
+			result += element + "$";
+		}
+		return result;
+	}
+
+	private Dictionary<int, BoardElement> setupBoardFromString(string boardString) {
+
+		Dictionary<int, BoardElement> board = new Dictionary<int, BoardElement> ();
+		string[] elements = boardString.Split ('$');
+		for (int i = 0; i < elements.Length; i++) {
+			string elem = elements [i];
+			if (elem == "wall") {
+				board.Add (i, BoardElement.wall);
+			} else if (elem == "solid") {
+				board.Add (i, BoardElement.solid);
+			} else if (elem == "empty") {
+				board.Add (i, BoardElement.empty);
+			}
+		}
+		return board;
+	}
 }
