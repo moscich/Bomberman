@@ -130,6 +130,7 @@ public class BoardSpawn : NetworkBehaviour {
 
 		foreach (Vector3 position in list) {
 			Transform obj = Instantiate (fire, position, Quaternion.identity);
+			obj.tag = "Fire";
 			obj.parent = parentObj.transform;
 			NetworkServer.Spawn(obj.gameObject);
 		}
@@ -227,7 +228,17 @@ public class BoardSpawn : NetworkBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-		
+		GameObject[] players = GameObject.FindGameObjectsWithTag ("Player");
+		GameObject[] fires = GameObject.FindGameObjectsWithTag ("Fire");
+		foreach (GameObject player in players) {
+			foreach (GameObject fire in fires) {
+				if (Mathf.RoundToInt(fire.transform.position.x) == Mathf.RoundToInt(player.transform.position.x) &&
+					Mathf.RoundToInt(fire.transform.position.y) == Mathf.RoundToInt(player.transform.position.y)) {
+					Debug.Log ("DIE !" + player.name);
+				}
+			}
+		}
+		BoardSpawn board = GameObject.Find("Board(Clone)").GetComponent<BoardSpawn>();
 	}
 
 	private void setupStartingPoints() {

@@ -35,6 +35,7 @@ public class MyNetworkManager : NetworkManager {
 		for (short i = 0; i < connList.Count; i++) {
 			NetworkConnection conn = connList [i];
 			GameObject obj = Instantiate (playerPrefab, new Vector3 (0, 0, 0), Quaternion.identity);
+			obj.name = "Player " + conn.connectionId;
 			NetworkServer.SpawnWithClientAuthority (obj, conn);
 			NetworkServer.AddPlayerForConnection (conn, obj, i);
 		}
