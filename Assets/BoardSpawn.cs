@@ -41,9 +41,9 @@ public class BoardSpawn : NetworkBehaviour {
 	public BoardElement elementForPosition(Vector2 position) {
 		BoardElement result;
 		bool found = board.TryGetValue (BOARD_WIDTH * (int)position.y + (int)position.x, out result);
-		if (found == false) {
-			return BoardElement.empty;
-		}
+//		if (found == false) {
+//			return BoardElement.empty;
+//		}
 		return result;
 	}
 
@@ -95,18 +95,8 @@ public class BoardSpawn : NetworkBehaviour {
 
 		List<Vector3> list = new List<Vector3> ();
 		list.Add (bomb.position);
-//		list.Add(new Vector3 (1 + (int)bomb.position.x, bomb.position.y));
-//		list.Add(new Vector3 (2 + (int)bomb.position.x, bomb.position.y));
-//		list.Add(new Vector3 (-1 + (int)bomb.position.x, bomb.position.y));
-//		list.Add(new Vector3 (-2 + (int)bomb.position.x, bomb.position.y));
-//
-//		list.Add(new Vector3 ((int)bomb.position.x, bomb.position.y -1));
-//		list.Add(new Vector3 ((int)bomb.position.x, bomb.position.y -2));
-
 		Transform parentObj = Instantiate (fireGroup, bomb.position, Quaternion.identity);
 		parentObj.parent = this.transform;
-
-		// up 
 
 		int[] directionsX = {1,-1,0,0};
 		int[] directionsY = {0,0,1,-1};
@@ -129,6 +119,7 @@ public class BoardSpawn : NetworkBehaviour {
 					NetworkServer.Spawn (obj.gameObject);
 					Destroy (obj.gameObject, 1);
 					board [index] = BoardElement.empty;
+					RpcUpdateBoard (BoardElement.empty, index);
 					break;
 				} else if (element == BoardElement.solid) {
 					break;
@@ -222,7 +213,16 @@ public class BoardSpawn : NetworkBehaviour {
 			Debug.Log ("Client received");
 		}
 		Debug.Log ("Received board yo!" + boardString);
-//		this.board = board;
+	}
+
+	[ClientRpc]
+	public void RpcUpdateBoard(BoardElement element, int index)
+	{
+		if (!isServer) {
+			board [index] = element;
+			Debug.Log ("Client received index = " + index);
+ 		}
+		//		this.board = board;
 	}
 
 	// Update is called once per frame

@@ -29,18 +29,18 @@ public class SimpleMove : NetworkBehaviour {
 		Vector3 destination = transform.position + (move * speed * Time.deltaTime);
 
 		int destinationFieldY;
-		if (destination.y > transform.position.y + 0.01f) {
+		if (destination.y > transform.position.y/* + 0.01f*/) {
 			destinationFieldY = (int)Mathf.Floor (destination.y + 1);
-		} else if (destination.y < transform.position.y - 0.01f) {
+		} else if (destination.y < transform.position.y/* - 0.01f*/) {
 			destinationFieldY = (int)Mathf.Floor (destination.y);
 		} else {
 			destinationFieldY = (int)currentField.y;
 		}
 
 		int destinationFieldX;
-		if (destination.x > transform.position.x + 0.01f) {
+		if (destination.x > transform.position.x/* + 0.01f*/) {
 			destinationFieldX = (int)Mathf.Floor (destination.x + 1);
-		} else if (destination.x < transform.position.x - 0.01f) {
+		} else if (destination.x < transform.position.x/* - 0.01f*/) {
 			destinationFieldX = (int)Mathf.Floor (destination.x);
 		} else {
 			destinationFieldX = (int)currentField.x;
@@ -67,6 +67,7 @@ public class SimpleMove : NetworkBehaviour {
 		destination.x = Mathf.Max (destination.x, 0);
 		destination.y = Mathf.Max (destination.y, 0);
 		transform.position = destination;
+//		destinationDebug.transform.position = new Vector3(destinationFieldX, destinationFieldY, -3);
 
 		if (Input.GetButton ("Fire1")) {
 //			board.addBomb (currentField);
