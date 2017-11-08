@@ -31,6 +31,8 @@ public class BoardSpawn : NetworkBehaviour {
 	public Transform fireGroup;
 	public Transform fireWall;
 
+	private bool gameEnded = false;
+
 	public Dictionary<int, BoardElement> board;
 	public Dictionary<int, GameObject> gameObjects;
 
@@ -113,11 +115,11 @@ public class BoardSpawn : NetworkBehaviour {
 				board.TryGetValue (index, out element);
 				if (element == BoardElement.wall) {
 					gameObjects.TryGetValue (index, out gameObj);
-					Destroy (gameObj);
+					DestroyObject (gameObj);
 					Transform obj = Instantiate (fireWall, new Vector3 (targetColumn, targetRow, this.transform.position.z), Quaternion.identity);
 					obj.parent = this.transform;
 					NetworkServer.Spawn (obj.gameObject);
-					Destroy (obj.gameObject, 1);
+					DestroyObject (obj.gameObject, 1);
 					board [index] = BoardElement.empty;
 					RpcUpdateBoard (BoardElement.empty, index);
 					break;
@@ -229,16 +231,30 @@ public class BoardSpawn : NetworkBehaviour {
 	// Update is called once per frame
 	void Update () {
 		GameObject[] players = GameObject.FindGameObjectsWithTag ("Player");
+		if (gameEnded) { return; }
+		if (players.Length < 2) {
+			gameEnded = true;
+			Invoke("resolveGame", 2);
+		}
+		Debug.Log ("" + players.Length + " left");
 		GameObject[] fires = GameObject.FindGameObjectsWithTag ("Fire");
 		foreach (GameObject player in players) {
 			foreach (GameObject fire in fires) {
 				if (Mathf.RoundToInt(fire.transform.position.x) == Mathf.RoundToInt(player.transform.position.x) &&
 					Mathf.RoundToInt(fire.transform.position.y) == Mathf.RoundToInt(player.transform.position.y)) {
 					Debug.Log ("DIE !" + player.name);
+					DestroyObject (player.gameObject);
 				}
 			}
 		}
 		BoardSpawn board = GameObject.Find("Board(Clone)").GetComponent<BoardSpawn>();
+	}
+
+	void resolveGame() {
+		GameObject[] players = GameObject.FindGameObjectsWithTag ("Player");
+		Debug.Log("Player " + players[0].name + " wins yo!");
+		DestroyObject (players [0].gameObject);
+		DestroyObject (this.gameObject);
 	}
 
 	private void setupStartingPoints() {
