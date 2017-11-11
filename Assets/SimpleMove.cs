@@ -15,6 +15,7 @@ public class SimpleMove : NetworkBehaviour {
 	}
 	
 	float speed = 1.0f;
+	public int flameLength = 1;
 
 	void Update() {
 
@@ -24,6 +25,12 @@ public class SimpleMove : NetworkBehaviour {
 		}
 
 		Vector2 currentField = new Vector2 (Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.y));
+
+		BoardElement elem = board.elementForPosition (currentField);
+		if (elem == BoardElement.bonus_flame) {
+//			flameLength++;
+			CmdOmnomnom (currentField);
+		}
 
 		Vector3 move = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"), 0);
 		Vector3 destination = transform.position + (move * speed * Time.deltaTime);
@@ -71,15 +78,27 @@ public class SimpleMove : NetworkBehaviour {
 
 		if (Input.GetButton ("Fire1")) {
 //			board.addBomb (currentField);
-			CmdSetBomb(currentField);
+			CmdSetBomb(currentField, flameLength);
 		}
 	}
 
+	[ClientRpc]
+	public void RpcUpgradeFlame() {
+		flameLength++;
+	}
+		
 	[Command]
-	void CmdSetBomb(Vector2 currentField) {
+	void CmdOmnomnom(Vector2 currentField) {
+		Debug.Log ("WOŁAM = " + this.name);
+
+		board.omnomnom (currentField, this.name);
+	}
+
+	[Command]
+	void CmdSetBomb(Vector2 currentField, int flameLength) {
 //		Transform obj = Instantiate (bomb, transform.position, Quaternion.identity);
 //		NetworkServer.Spawn(obj.gameObject);
 //		obj.parent = this.transform;
-		board.addBomb (currentField);
+		board.addBomb (currentField, flameLength);
 	}
 }

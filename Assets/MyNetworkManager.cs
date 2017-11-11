@@ -18,13 +18,14 @@ public class SomethingMessage: MessageBase
 public class MyNetworkManager : NetworkManager {
 	
 	public Button buttonComponent;
+	public Text textComponent;
 	private bool server = false;
 	private NetworkConnection serverConn;
 	private List<NetworkConnection> connList;
 	// Use this for initialization
 	void Start () {
-		connList = new List<NetworkConnection> ();
 		buttonComponent.onClick.AddListener (HandleClick);
+
 //		client.RegisterHandler (MsgType.Command, MessageReceived);
 	}
 
@@ -32,6 +33,9 @@ public class MyNetworkManager : NetworkManager {
 	{
 		GameController ctrl = GameObject.Find("GameController").GetComponent<GameController>();
 		ctrl.gogoyo ();
+		buttonComponent.gameObject.SetActive(false);
+		textComponent.gameObject.SetActive(false);
+
 		for (short i = 0; i < connList.Count; i++) {
 			NetworkConnection conn = connList [i];
 			GameObject obj = Instantiate (playerPrefab, new Vector3 (0, 0, 0), Quaternion.identity);
@@ -43,6 +47,14 @@ public class MyNetworkManager : NetworkManager {
 //			
 //		}
 
+	}
+
+	public void reset() {
+		if (server) {
+			buttonComponent.gameObject.SetActive(true);
+			textComponent.gameObject.SetActive(true);
+			textComponent.text = connList.Count + " Players";
+		}
 	}
 
 	// Update is called once per frame
@@ -84,9 +96,10 @@ public class MyNetworkManager : NetworkManager {
 		}
 
 		if (!server) {
-			
 			NetworkServer.RegisterHandler (666, BombToServer);
 			NetworkServer.RegisterHandler (432, MessageReceived);
+
+
 		}
 //		if (conn.connectionId == 1) {
 //			GameController ctrl = GameObject.Find("GameController").GetComponent<GameController>();
@@ -103,6 +116,19 @@ public class MyNetworkManager : NetworkManager {
 
 	}
 
+	public override void OnStartHost ()
+	{
+		base.OnStartHost ();
+		buttonComponent.gameObject.SetActive(true);
+		textComponent.gameObject.SetActive(true);
+		connList = new List<NetworkConnection> ();
+	}
+
+	public override void OnStopHost ()
+	{
+		base.OnStopHost ();
+	}
+
 	public override void OnServerConnect (NetworkConnection conn)
 	{
 		base.OnServerConnect (conn);
@@ -110,7 +136,22 @@ public class MyNetworkManager : NetworkManager {
 //			Debug.Log ("They are equal! Connect");
 //		}
 		connList.Add(conn);
+		textComponent.text = connList.Count + " Players";
 		Debug.Log ("ON serv Conn = " + conn.connectionId);
+	}
+
+	public override void OnServerDisconnect (NetworkConnection conn)
+	{
+		base.OnServerDisconnect (conn);
+		Debug.Log ("S Disconnect = " + conn.connectionId);
+		connList.Remove (conn);
+		textComponent.text = connList.Count + " Players";
+	}
+
+	public override void OnClientDisconnect (NetworkConnection conn)
+	{
+		base.OnClientDisconnect (conn);
+		Debug.Log ("Disconnect = " + conn.connectionId);
 	}
 
 	public void MessageReceived(NetworkMessage netMsg) {

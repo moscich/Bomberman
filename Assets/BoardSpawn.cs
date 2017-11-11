@@ -8,7 +8,9 @@ public enum BoardElement {
 	wall,
 	empty,
 	bomb,
-	fire
+	fire,
+	bonus_bomb,
+	bonus_flame
 };
 
 static class BoardElementExtensions {
@@ -30,6 +32,7 @@ public class BoardSpawn : NetworkBehaviour {
 	public Transform fire;
 	public Transform fireGroup;
 	public Transform fireWall;
+	public Transform bonus_flame;
 
 	private bool gameEnded = false;
 
@@ -49,11 +52,12 @@ public class BoardSpawn : NetworkBehaviour {
 		return result;
 	}
 
-	public void addBomb(Vector2 position) {
+	public void addBomb(Vector2 position, int flameLength) {
 		int index = (int)position.y * BOARD_WIDTH + (int)position.x;
 		if (board [index] == BoardElement.empty) {
 			board [index] = BoardElement.bomb;
 			Transform obj = Instantiate (alternateBomb, new Vector3 (index % BOARD_WIDTH, index / BOARD_WIDTH, this.transform.position.z), Quaternion.identity);
+			obj.GetComponent<BombScript> ().flameLength = flameLength;
 			NetworkServer.Spawn(obj.gameObject);
 			obj.parent = this.transform;
 		}
@@ -116,12 +120,17 @@ public class BoardSpawn : NetworkBehaviour {
 				if (element == BoardElement.wall) {
 					gameObjects.TryGetValue (index, out gameObj);
 					DestroyObject (gameObj);
+					Transform bonus = Instantiate (bonus_flame, new Vector3 (targetColumn, targetRow, this.transform.position.z +1), Quaternion.identity);
 					Transform obj = Instantiate (fireWall, new Vector3 (targetColumn, targetRow, this.transform.position.z), Quaternion.identity);
 					obj.parent = this.transform;
+					bonus.parent = this.transform;
 					NetworkServer.Spawn (obj.gameObject);
+					NetworkServer.Spawn (bonus.gameObject);
+					gameObjects [index] = bonus.gameObject;
 					DestroyObject (obj.gameObject, 1);
-					board [index] = BoardElement.empty;
-					RpcUpdateBoard (BoardElement.empty, index);
+					BoardElement dropElement = BoardElement.bonus_flame;
+					board [index] = dropElement;
+					RpcUpdateBoard (dropElement, index);
 					break;
 				} else if (element == BoardElement.solid) {
 					break;
@@ -230,24 +239,25 @@ public class BoardSpawn : NetworkBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-		GameObject[] players = GameObject.FindGameObjectsWithTag ("Player");
-		if (gameEnded) { return; }
-		if (players.Length < 2) {
-			gameEnded = true;
-			Invoke("resolveGame", 2);
-		}
-		Debug.Log ("" + players.Length + " left");
-		GameObject[] fires = GameObject.FindGameObjectsWithTag ("Fire");
-		foreach (GameObject player in players) {
-			foreach (GameObject fire in fires) {
-				if (Mathf.RoundToInt(fire.transform.position.x) == Mathf.RoundToInt(player.transform.position.x) &&
-					Mathf.RoundToInt(fire.transform.position.y) == Mathf.RoundToInt(player.transform.position.y)) {
-					Debug.Log ("DIE !" + player.name);
-					DestroyObject (player.gameObject);
+		if (isServer) {
+			GameObject[] players = GameObject.FindGameObjectsWithTag ("Player");
+			if (gameEnded) { return; }
+			if (players.Length < 2) {
+				gameEnded = true;
+				Invoke("resolveGame", 2);
+			}
+
+			GameObject[] fires = GameObject.FindGameObjectsWithTag ("Fire");
+			foreach (GameObject player in players) {
+				foreach (GameObject fire in fires) {
+					if (Mathf.RoundToInt(fire.transform.position.x) == Mathf.RoundToInt(player.transform.position.x) &&
+						Mathf.RoundToInt(fire.transform.position.y) == Mathf.RoundToInt(player.transform.position.y)) {
+						Debug.Log ("DIE !" + player.name);
+						DestroyObject (player.gameObject);
+					}
 				}
 			}
 		}
-		BoardSpawn board = GameObject.Find("Board(Clone)").GetComponent<BoardSpawn>();
 	}
 
 	void resolveGame() {
@@ -255,6 +265,14 @@ public class BoardSpawn : NetworkBehaviour {
 		Debug.Log("Player " + players[0].name + " wins yo!");
 		DestroyObject (players [0].gameObject);
 		DestroyObject (this.gameObject);
+		MyNetworkManager networkManager = GameObject.Find("Network").GetComponent<MyNetworkManager>();
+		networkManager.reset ();
+	}
+
+	[ClientRpc]
+	public void RpcPlayerWon(string player) {
+		if (isServer) {
+		}
 	}
 
 	private void setupStartingPoints() {
@@ -299,5 +317,18 @@ public class BoardSpawn : NetworkBehaviour {
 			}
 		}
 		return board;
+	}
+
+	public void omnomnom(Vector2 position, string player) {
+		int index = (int)position.y * BOARD_WIDTH + (int)position.x;
+		GameObject gameObj;
+		if (gameObjects.TryGetValue (index, out gameObj)) {
+			Debug.Log ("Jemy! = " + gameObj);
+			gameObjects.Remove (index);
+			board [index] = BoardElement.empty;
+			DestroyObject (gameObj);
+			RpcUpdateBoard (BoardElement.empty, index);
+			GameObject.Find(player).GetComponent<SimpleMove>().RpcUpgradeFlame();
+		}
 	}
 }

@@ -6,6 +6,7 @@ using UnityEngine.Networking;
 public class BombScript : NetworkBehaviour {
 
 	float elapsedTime = 0;
+	public int flameLength = 1;
 
 	// Use this for initialization
 	void Start () {
@@ -32,6 +33,8 @@ public class BombScript : NetworkBehaviour {
 	void CmdDetonate() {
 		Debug.Log ("Detonate yo xD");
 		BoardSpawn board = GameObject.Find("Board(Clone)").GetComponent<BoardSpawn>();
-		board.detonateBomb (transform, 2);
+		board.detonateBomb (transform, flameLength);
 	}
+
+
 }
