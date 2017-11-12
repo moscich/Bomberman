@@ -97,7 +97,7 @@ public class MyNetworkManager : NetworkManager {
 
 		if (!server) {
 			NetworkServer.RegisterHandler (666, BombToServer);
-			NetworkServer.RegisterHandler (432, MessageReceived);
+//			NetworkServer.RegisterHandler (432, MessageReceived);
 
 
 		}
@@ -154,12 +154,12 @@ public class MyNetworkManager : NetworkManager {
 		Debug.Log ("Disconnect = " + conn.connectionId);
 	}
 
-	public void MessageReceived(NetworkMessage netMsg) {
-		SomethingMessage hej = netMsg.ReadMessage<SomethingMessage>();
-		Debug.Log ("COS POSZLO!!!" + hej.someInt);
-		BoardSpawn board = GameObject.Find("Board").GetComponent<BoardSpawn>();
-		board.bombFromNetwork (hej.someInt);
-	}
+//	public void MessageReceived(NetworkMessage netMsg) {
+//		SomethingMessage hej = netMsg.ReadMessage<SomethingMessage>();
+//		Debug.Log ("COS POSZLO!!!" + hej.someInt);
+//		BoardSpawn board = GameObject.Find("Board").GetComponent<BoardSpawn>();
+//		board.bombFromNetwork (hej.someInt);
+//	}
 
 	public void Bomb(NetworkMessage netMsg) {
 		Debug.Log ("Connected! XDXDXD");
@@ -169,7 +169,7 @@ public class MyNetworkManager : NetworkManager {
 
 	public void addBombOnBoard(int position) {
 		BoardSpawn board = GameObject.Find("Board").GetComponent<BoardSpawn>();
-		board.bombFromNetwork (position);
+//		board.bombFromNetwork (position);
 	}
 
 	public void BombToServer(NetworkMessage netMsg) {

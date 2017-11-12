@@ -6,7 +6,7 @@ using UnityEngine.Networking;
 public class BombScript : NetworkBehaviour {
 
 	float elapsedTime = 0;
-	public int flameLength = 1;
+	public SimpleMove owner;
 
 	// Use this for initialization
 	void Start () {
@@ -15,6 +15,7 @@ public class BombScript : NetworkBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+
 		if (((int)elapsedTime) % 2 == 0) {
 			float vec = 1 + elapsedTime - Mathf.Floor (elapsedTime);
 			transform.localScale = new Vector3 (vec, vec, 1);
@@ -24,16 +25,22 @@ public class BombScript : NetworkBehaviour {
 		}
 		elapsedTime += Time.deltaTime;
 
+		if (!isServer) {
+			return;
+		}
+
 		if (elapsedTime > 3) {
-			CmdDetonate ();
+			BoardSpawn board = GameObject.Find("Board(Clone)").GetComponent<BoardSpawn>();
+			board.detonateBomb (transform, owner.flameLength);
+//			CmdDetonate ();
 		}
 	}
-
-	[Command]
-	void CmdDetonate() {
-		Debug.Log ("Detonate yo xD");
-		BoardSpawn board = GameObject.Find("Board(Clone)").GetComponent<BoardSpawn>();
-		board.detonateBomb (transform, flameLength);
+		
+	public void detonate() {
+//		Debug.Log ("Detonate yo xD");
+//		BoardSpawn board = GameObject.Find("Board(Clone)").GetComponent<BoardSpawn>();
+//		board.detonateBomb (transform, owner.flameLength);
+		owner.removeBomb (this.gameObject);
 	}
 
 

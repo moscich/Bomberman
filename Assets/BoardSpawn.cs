@@ -52,49 +52,34 @@ public class BoardSpawn : NetworkBehaviour {
 		return result;
 	}
 
-	public void addBomb(Vector2 position, int flameLength) {
+	public GameObject addBomb(Vector2 position, SimpleMove player) {
 		int index = (int)position.y * BOARD_WIDTH + (int)position.x;
 		if (board [index] == BoardElement.empty) {
 			board [index] = BoardElement.bomb;
 			Transform obj = Instantiate (alternateBomb, new Vector3 (index % BOARD_WIDTH, index / BOARD_WIDTH, this.transform.position.z), Quaternion.identity);
-			obj.GetComponent<BombScript> ().flameLength = flameLength;
+			obj.GetComponent<BombScript> ().owner = player;
 			NetworkServer.Spawn(obj.gameObject);
 			obj.parent = this.transform;
+			gameObjects.Add (index, obj.gameObject);
+			return obj.gameObject;
 		}
-//		int boardIndex = (int)position.y * BOARD_WIDTH + (int)position.x;
-//		if (board [boardIndex] == BoardElement.empty) {
-//			MyNetworkManager networkManager = GameObject.Find("Network").GetComponent<MyNetworkManager>();
-//			networkManager.sendBomb (boardIndex);
-//			board [boardIndex] = BoardElement.bomb;
-//			Transform obj = Instantiate (bomb, new Vector3 (position.x, position.y, this.transform.position.z), Quaternion.identity);
-//			obj.parent = this.transform;
-//		}
+		return null;
 	}
 
-	public void bombFromNetwork(int index) {
-		if (board [index] == BoardElement.empty) {
-			board [index] = BoardElement.bomb;
-			Transform obj = Instantiate (bomb, new Vector3 (index % BOARD_WIDTH, index / BOARD_WIDTH, this.transform.position.z), Quaternion.identity);
-			obj.parent = this.transform;
-		}
-	}
-
-	public void addBomb(int index) {
-		if (board [index] == BoardElement.empty) {
-			board [index] = BoardElement.bomb;
-			Transform obj = Instantiate (alternateBomb, new Vector3 (index % BOARD_WIDTH, index / BOARD_WIDTH, this.transform.position.z), Quaternion.identity);
-			obj.parent = this.transform;
-		}
+//	public void bombFromNetwork(int index) {
 //		if (board [index] == BoardElement.empty) {
 //			board [index] = BoardElement.bomb;
 //			Transform obj = Instantiate (bomb, new Vector3 (index % BOARD_WIDTH, index / BOARD_WIDTH, this.transform.position.z), Quaternion.identity);
 //			obj.parent = this.transform;
 //		}
-	}
+//	}
 
 	public void detonateBomb(Transform bomb, int power) {
 		board[(int)bomb.transform.position.y * BOARD_WIDTH + (int)bomb.transform.position.x] = BoardElement.empty;
+		bomb.GetComponent<BombScript> ().detonate ();
 		Destroy (bomb.gameObject);
+		int bombIndex = (int)bomb.position.y * BOARD_WIDTH + (int)bomb.position.x;
+		gameObjects.Remove (bombIndex);
 
 		int row = (int)bomb.position.y;
 		int column = (int)bomb.position.x;
@@ -120,7 +105,7 @@ public class BoardSpawn : NetworkBehaviour {
 				if (element == BoardElement.wall) {
 					gameObjects.TryGetValue (index, out gameObj);
 					DestroyObject (gameObj);
-					Transform bonus = Instantiate (bonus_flame, new Vector3 (targetColumn, targetRow, this.transform.position.z +1), Quaternion.identity);
+					Transform bonus = Instantiate (bonus_flame, new Vector3 (targetColumn, targetRow, this.transform.position.z + 1), Quaternion.identity);
 					Transform obj = Instantiate (fireWall, new Vector3 (targetColumn, targetRow, this.transform.position.z), Quaternion.identity);
 					obj.parent = this.transform;
 					bonus.parent = this.transform;
@@ -134,6 +119,10 @@ public class BoardSpawn : NetworkBehaviour {
 					break;
 				} else if (element == BoardElement.solid) {
 					break;
+				} else if (element == BoardElement.bomb) {
+					gameObjects.TryGetValue (index, out gameObj);
+					BombScript bombObj = gameObj.GetComponent<BombScript> ();
+					detonateBomb (gameObj.transform, bombObj.owner.flameLength);
 				}
 				list.Add (new Vector3 ((int)bomb.position.x + (1 + i) * xdir , bomb.position.y + (i + 1) * ydir));
 			}

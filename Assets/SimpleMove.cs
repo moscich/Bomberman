@@ -8,14 +8,17 @@ public class SimpleMove : NetworkBehaviour {
 	public BoardSpawn board;
 	public Transform bomb;
 	public Transform destinationDebug;
+	public List<GameObject> bombs;
 
 	void Start () {
 		board = GameObject.Find("Board(Clone)").GetComponent<BoardSpawn>();
+		bombs = new List<GameObject> ();
 //		destinationDebug = Instantiate (destinationDebug, new Vector3 (0, 0, this.transform.position.z), Quaternion.identity);
 	}
 	
-	float speed = 1.0f;
+	public float speed = 2.5f;
 	public int flameLength = 1;
+	public int bombCount = 2;
 
 	void Update() {
 
@@ -92,7 +95,16 @@ public class SimpleMove : NetworkBehaviour {
 	}
 
 	[Command]
-	void CmdSetBomb(Vector2 currentField, int flameLength) {
-		board.addBomb (currentField, flameLength);
+	void CmdSetBomb(Vector2 currentField, int flameLength) {		
+		if (bombCount > bombs.Count) {
+			GameObject bomb = board.addBomb (currentField, this);
+			if (bomb != null) {
+				bombs.Add (bomb);
+			}
+		}
+	}
+
+	public void removeBomb(GameObject bomb) {
+		bombs.Remove (bomb);
 	}
 }
