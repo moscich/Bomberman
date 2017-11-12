@@ -19,19 +19,13 @@ public class SimpleMove : NetworkBehaviour {
 
 	void Update() {
 
+		Vector2 currentField = new Vector2 (Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.y));
+		CmdCheckOmnomnom ();
 		if (!isLocalPlayer)
 		{
 			return;
 		}
-
-		Vector2 currentField = new Vector2 (Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.y));
-
-		BoardElement elem = board.elementForPosition (currentField);
-		if (elem == BoardElement.bonus_flame) {
-//			flameLength++;
-			CmdOmnomnom (currentField);
-		}
-
+			
 		Vector3 move = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"), 0);
 		Vector3 destination = transform.position + (move * speed * Time.deltaTime);
 
@@ -86,19 +80,19 @@ public class SimpleMove : NetworkBehaviour {
 	public void RpcUpgradeFlame() {
 		flameLength++;
 	}
-		
-	[Command]
-	void CmdOmnomnom(Vector2 currentField) {
-		Debug.Log ("WOŁAM = " + this.name);
 
-		board.omnomnom (currentField, this.name);
+	[Command]
+	void CmdCheckOmnomnom() {
+		Vector2 currentField = new Vector2 (Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.y));
+		BoardElement elem = board.elementForPosition (currentField);
+		if (elem == BoardElement.bonus_flame) {
+			Debug.Log ("WOŁAM = " + this.name);
+			board.omnomnom (currentField, this.name);
+		}
 	}
 
 	[Command]
 	void CmdSetBomb(Vector2 currentField, int flameLength) {
-//		Transform obj = Instantiate (bomb, transform.position, Quaternion.identity);
-//		NetworkServer.Spawn(obj.gameObject);
-//		obj.parent = this.transform;
 		board.addBomb (currentField, flameLength);
 	}
 }
