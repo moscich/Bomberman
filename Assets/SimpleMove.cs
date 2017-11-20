@@ -84,11 +84,16 @@ public class SimpleMove : NetworkBehaviour {
 		flameLength++;
 	}
 
+	[ClientRpc]
+	public void RpcUpgradeBombs() {
+		bombCount++;
+	}
+
 	[Command]
 	void CmdCheckOmnomnom() {
 		Vector2 currentField = new Vector2 (Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.y));
 		BoardElement elem = board.elementForPosition (currentField);
-		if (elem == BoardElement.bonus_flame) {
+		if (elem == BoardElement.bonus_flame || elem == BoardElement.bonus_bomb) {
 			Debug.Log ("WOŁAM = " + this.name);
 			board.omnomnom (currentField, this.name);
 		}

@@ -33,6 +33,7 @@ public class BoardSpawn : NetworkBehaviour {
 	public Transform fireGroup;
 	public Transform fireWall;
 	public Transform bonus_flame;
+	public Transform bonus_bomb;
 
 	private bool gameEnded = false;
 
@@ -105,7 +106,7 @@ public class BoardSpawn : NetworkBehaviour {
 				if (element == BoardElement.wall) {
 					gameObjects.TryGetValue (index, out gameObj);
 					DestroyObject (gameObj);
-					Transform bonus = Instantiate (bonus_flame, new Vector3 (targetColumn, targetRow, this.transform.position.z + 1), Quaternion.identity);
+					Transform bonus = Instantiate (bonus_bomb, new Vector3 (targetColumn, targetRow, this.transform.position.z + 1), Quaternion.identity);
 					Transform obj = Instantiate (fireWall, new Vector3 (targetColumn, targetRow, this.transform.position.z), Quaternion.identity);
 					obj.parent = this.transform;
 					bonus.parent = this.transform;
@@ -113,7 +114,7 @@ public class BoardSpawn : NetworkBehaviour {
 					NetworkServer.Spawn (bonus.gameObject);
 					gameObjects [index] = bonus.gameObject;
 					DestroyObject (obj.gameObject, 1);
-					BoardElement dropElement = BoardElement.bonus_flame;
+					BoardElement dropElement = BoardElement.bonus_bomb;
 					board [index] = dropElement;
 					RpcUpdateBoard (dropElement, index);
 					break;
@@ -312,12 +313,17 @@ public class BoardSpawn : NetworkBehaviour {
 		int index = (int)position.y * BOARD_WIDTH + (int)position.x;
 		GameObject gameObj;
 		if (gameObjects.TryGetValue (index, out gameObj)) {
+			if (board [index] == BoardElement.bonus_flame) {
+				GameObject.Find(player).GetComponent<SimpleMove>().RpcUpgradeFlame();
+			} else if (board [index] == BoardElement.bonus_bomb) {
+				GameObject.Find(player).GetComponent<SimpleMove>().RpcUpgradeBombs();
+			}
 			Debug.Log ("Jemy! = " + gameObj);
 			gameObjects.Remove (index);
 			board [index] = BoardElement.empty;
 			DestroyObject (gameObj);
 			RpcUpdateBoard (BoardElement.empty, index);
-			GameObject.Find(player).GetComponent<SimpleMove>().RpcUpgradeFlame();
+
 		}
 	}
 }

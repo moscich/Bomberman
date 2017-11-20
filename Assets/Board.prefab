@@ -64,6 +64,7 @@ MonoBehaviour:
   fireWall: {fileID: 4866378488595486, guid: 453a8afd89d3a40fcb107e6fa8c5c6c6, type: 2}
   bonus_flame: {fileID: 4039457356722786, guid: 85cb78926161249a0986f189f11bb408,
     type: 2}
+  bonus_bomb: {fileID: 4751315024553498, guid: 8c3c89777b1b043c19054a550651ae13, type: 2}
 --- !u!114 &114946270101282626
 MonoBehaviour:
   m_ObjectHideFlags: 1
